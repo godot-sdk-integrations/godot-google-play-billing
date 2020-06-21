@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 29
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            output.outputFileName = "GodotGooglePlayBilling.${variant.name}.aar"
+        }
+    }
+
+}
+
+dependencies {
+    implementation "androidx.legacy:legacy-support-v4:1.0.0"
+    implementation 'com.android.billingclient:billing:3.0.0'
+    compileOnly fileTree(dir: 'libs', include: ['godot-lib*.aar'])
+}

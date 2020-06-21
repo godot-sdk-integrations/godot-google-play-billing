@@ -1,0 +1,2 @@
+include ':godot-google-play-billing'
+rootProject.name = "Godot Google Play Billing"
