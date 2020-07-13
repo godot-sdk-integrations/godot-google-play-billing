@@ -159,6 +159,44 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 
+	public Dictionary launchPriceChangeConfirmationFlow(String sku) {
+		if (!skuDetailsCache.containsKey(sku)) {
+			emitSignal("subscription_price_changed_error", null, "Not a valid Sku!", sku);
+		}
+
+		SkuDetails skuDetails = skuDetailsCache.get(sku);
+		PriceChangeFlowParams priceChangeFlowParams = PriceChangeFlowParams.newBuilder()
+												   .setSkuDetails(skuDetails)
+												   .build();
+
+		billingClient.launchPriceChangeConfirmationFlow(getActivity(), priceChangeFlowParams, new PriceChangeConfirmationListener() {
+ 			@Override
+ 			public void onPriceChangeConfirmationResult(BillingResult billingResult) {
+ 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+ 					emitSignal("subscription_price_changed", sku);
+ 				} else {
+ 					emitSignal("subscription_price_changed_error", billingResult.getResponseCode(), billingResult.getDebugMessage(), sku);
+ 				}
+ 			}
+ 		});
+	}
+
+	public Dictionary isFeatureSupported(String feature) {
+		Dictionary returnValue = new Dictionary();
+		BillingResult result = billingClient.isFeatureSupported(feature);
+
+		if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+			returnValue.put("status", 0); // OK = 0
+		} else {
+			returnValue.put("status", 1); // FAILED = 1
+			returnValue.put("response_code", result.getResponseCode());
+			returnValue.put("debug_message", result.getDebugMessage());
+		}
+
+		return returnValue;
+	}
+
+
 	@Override
 	public void onBillingSetupFinished(BillingResult billingResult) {
 		if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
@@ -234,6 +272,8 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		signals.add(new SignalInfo("purchase_acknowledgement_error", Integer.class, String.class, String.class));
 		signals.add(new SignalInfo("purchase_consumed", String.class));
 		signals.add(new SignalInfo("purchase_consumption_error", Integer.class, String.class, String.class));
+		signals.add(new SignalInfo("subscription_price_changed", String.class));
+		signals.add(new SignalInfo("subscription_price_changed_error", Integer.class, String.class, String.class));
 
 		return signals;
 	}
