@@ -175,7 +175,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
 	public Dictionary purchase(String sku) {
 		if (!skuDetailsCache.containsKey(sku)) {
-			emitSignal("purchase_error", null, "You must query the sku details and wait for the result before purchasing!");
+			Dictionary returnValue = new Dictionary();
+			returnValue.put("status", 1); // FAILED = 1
+			returnValue.put("response_code", null); // Null since there is no ResponseCode to return but to keep the interface (status, response_code, debug_message)
+			returnValue.put("debug_message", "You must query the sku details and wait for the result before purchasing!");
+			return returnValue;
 		}
 
 		SkuDetails skuDetails = skuDetailsCache.get(sku);
