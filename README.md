@@ -17,6 +17,7 @@ Prerequisites:
 Steps to build:
 
 1. Clone this Git repository
-2. Run `./gradlew build` in the cloned repository
+2. Put `godot-lib.***.release.aar` in `./godot-google-play-billing/libs/`
+3. Run `./gradlew build` in the cloned repository
 
 If the build succeeds, you can find the resulting `.aar` files in `./godot-google-play-billing/build/outputs/aar/`.
