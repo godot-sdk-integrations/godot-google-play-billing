@@ -4,7 +4,7 @@ Godot Android plugin for the Google Play Billing library
 
 ## Usage & Docs
 
-You can find the docs for this first-party plugin in the [official Godot docs](https://docs.godotengine.org/en/latest/tutorials/platform/android_in_app_purchases.html).
+You can find the docs for this first-party plugin in the [official Godot docs](https://docs.godotengine.org/en/stable/tutorials/platform/android_in_app_purchases.html).
 
 
 ## Compiling
