@@ -68,7 +68,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		super(godot);
 
 		billingClient = BillingClient
-								.newBuilder(getActivity())
+								.newBuilder(godot.requireContext())
 								.enablePendingPurchases()
 								.setListener(this)
 								.build();
@@ -187,7 +187,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 												   .setSkuDetails(skuDetails)
 												   .build();
 
-		BillingResult result = billingClient.launchBillingFlow(getActivity(), purchaseParams);
+		BillingResult result = billingClient.launchBillingFlow(getGodot().requireActivity(), purchaseParams);
 
 		Dictionary returnValue = new Dictionary();
 		if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
