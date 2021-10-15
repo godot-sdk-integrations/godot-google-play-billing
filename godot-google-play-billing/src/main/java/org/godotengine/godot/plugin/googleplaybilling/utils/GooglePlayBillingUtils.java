@@ -35,6 +35,7 @@ import org.godotengine.godot.Dictionary;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetails;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GooglePlayBillingUtils {
@@ -45,8 +46,14 @@ public class GooglePlayBillingUtils {
 		dictionary.put("purchase_state", purchase.getPurchaseState());
 		dictionary.put("purchase_time", purchase.getPurchaseTime());
 		dictionary.put("purchase_token", purchase.getPurchaseToken());
+		dictionary.put("quantity", purchase.getQuantity());
 		dictionary.put("signature", purchase.getSignature());
-		dictionary.put("sku", purchase.getSku());
+		// PBL V4 replaced getSku with getSkus to support multi-sku purchases,
+		// use the first entry for "sku" and generate an array for "skus"
+		ArrayList<String> skus = purchase.getSkus();
+		dictionary.put("sku", skus.get(0));
+		String[] skusArray = skus.toArray(new String[0]);
+		dictionary.put("skus", skusArray);
 		dictionary.put("is_acknowledged", purchase.isAcknowledged());
 		dictionary.put("is_auto_renewing", purchase.isAutoRenewing());
 		return dictionary;
