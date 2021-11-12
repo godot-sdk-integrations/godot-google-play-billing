@@ -28,75 +28,71 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-package org.godotengine.godot.plugin.googleplaybilling.utils;
+package org.godotengine.godot.plugin.googleplaybilling.utils
 
-import org.godotengine.godot.Dictionary;
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.SkuDetails
+import org.godotengine.godot.Dictionary
 
-import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.SkuDetails;
+object GooglePlayBillingUtils {
+    private fun convertPurchaseToDictionary(purchase: Purchase): Dictionary {
+        val dictionary = Dictionary()
+        dictionary["order_id"] = purchase.orderId
+        dictionary["package_name"] = purchase.packageName
+        dictionary["purchase_state"] = purchase.purchaseState
+        dictionary["purchase_time"] = purchase.purchaseTime
+        dictionary["purchase_token"] = purchase.purchaseToken
+        dictionary["quantity"] = purchase.quantity
+        dictionary["signature"] = purchase.signature
+        // PBL V4 replaced getSku with getSkus to support multi-sku purchases,
+        // use the first entry for "sku" and generate an array for "skus"
+        val skus = purchase.skus
+        dictionary["sku"] = skus[0]
+        val skusArray = skus.toTypedArray()
+        dictionary["skus"] = skusArray
+        dictionary["is_acknowledged"] = purchase.isAcknowledged
+        dictionary["is_auto_renewing"] = purchase.isAutoRenewing
+        return dictionary
+    }
 
-import java.util.ArrayList;
-import java.util.List;
+    private fun convertSkuDetailsToDictionary(details: SkuDetails): Dictionary {
+        val dictionary = Dictionary()
+        dictionary["sku"] = details.sku
+        dictionary["title"] = details.title
+        dictionary["description"] = details.description
+        dictionary["price"] = details.price
+        dictionary["price_currency_code"] = details.priceCurrencyCode
+        dictionary["price_amount_micros"] = details.priceAmountMicros
+        dictionary["free_trial_period"] = details.freeTrialPeriod
+        dictionary["icon_url"] = details.iconUrl
+        dictionary["introductory_price"] = details.introductoryPrice
+        dictionary["introductory_price_amount_micros"] = details.introductoryPriceAmountMicros
+        dictionary["introductory_price_cycles"] = details.introductoryPriceCycles
+        dictionary["introductory_price_period"] = details.introductoryPricePeriod
+        dictionary["original_price"] = details.originalPrice
+        dictionary["original_price_amount_micros"] = details.originalPriceAmountMicros
+        dictionary["subscription_period"] = details.subscriptionPeriod
+        dictionary["type"] = details.type
+        return dictionary
+    }
 
-public class GooglePlayBillingUtils {
-	public static Dictionary convertPurchaseToDictionary(Purchase purchase) {
-		Dictionary dictionary = new Dictionary();
-		dictionary.put("order_id", purchase.getOrderId());
-		dictionary.put("package_name", purchase.getPackageName());
-		dictionary.put("purchase_state", purchase.getPurchaseState());
-		dictionary.put("purchase_time", purchase.getPurchaseTime());
-		dictionary.put("purchase_token", purchase.getPurchaseToken());
-		dictionary.put("quantity", purchase.getQuantity());
-		dictionary.put("signature", purchase.getSignature());
-		// PBL V4 replaced getSku with getSkus to support multi-sku purchases,
-		// use the first entry for "sku" and generate an array for "skus"
-		ArrayList<String> skus = purchase.getSkus();
-		dictionary.put("sku", skus.get(0));
-		String[] skusArray = skus.toArray(new String[0]);
-		dictionary.put("skus", skusArray);
-		dictionary.put("is_acknowledged", purchase.isAcknowledged());
-		dictionary.put("is_auto_renewing", purchase.isAutoRenewing());
-		return dictionary;
-	}
+    @JvmStatic
+    fun convertPurchaseListToDictionaryObjectArray(purchases: List<Purchase>): Array<Any?> {
+        val purchaseDictionaries = arrayOfNulls<Any>(purchases.size)
+        for (i in purchases.indices) {
+            purchaseDictionaries[i] = convertPurchaseToDictionary(purchases[i])
+        }
+        return purchaseDictionaries
+    }
 
-	public static Dictionary convertSkuDetailsToDictionary(SkuDetails details) {
-		Dictionary dictionary = new Dictionary();
-		dictionary.put("sku", details.getSku());
-		dictionary.put("title", details.getTitle());
-		dictionary.put("description", details.getDescription());
-		dictionary.put("price", details.getPrice());
-		dictionary.put("price_currency_code", details.getPriceCurrencyCode());
-		dictionary.put("price_amount_micros", details.getPriceAmountMicros());
-		dictionary.put("free_trial_period", details.getFreeTrialPeriod());
-		dictionary.put("icon_url", details.getIconUrl());
-		dictionary.put("introductory_price", details.getIntroductoryPrice());
-		dictionary.put("introductory_price_amount_micros", details.getIntroductoryPriceAmountMicros());
-		dictionary.put("introductory_price_cycles", details.getIntroductoryPriceCycles());
-		dictionary.put("introductory_price_period", details.getIntroductoryPricePeriod());
-		dictionary.put("original_price", details.getOriginalPrice());
-		dictionary.put("original_price_amount_micros", details.getOriginalPriceAmountMicros());
-		dictionary.put("subscription_period", details.getSubscriptionPeriod());
-		dictionary.put("type", details.getType());
-		return dictionary;
-	}
-
-	public static Object[] convertPurchaseListToDictionaryObjectArray(List<Purchase> purchases) {
-		Object[] purchaseDictionaries = new Object[purchases.size()];
-
-		for (int i = 0; i < purchases.size(); i++) {
-			purchaseDictionaries[i] = GooglePlayBillingUtils.convertPurchaseToDictionary(purchases.get(i));
-		}
-
-		return purchaseDictionaries;
-	}
-
-	public static Object[] convertSkuDetailsListToDictionaryObjectArray(List<SkuDetails> skuDetails) {
-		Object[] skuDetailsDictionaries = new Object[skuDetails.size()];
-
-		for (int i = 0; i < skuDetails.size(); i++) {
-			skuDetailsDictionaries[i] = GooglePlayBillingUtils.convertSkuDetailsToDictionary(skuDetails.get(i));
-		}
-
-		return skuDetailsDictionaries;
-	}
+    @JvmStatic
+    fun convertSkuDetailsListToDictionaryObjectArray(skuDetails: List<SkuDetails>): Array<Any?> {
+        val skuDetailsDictionaries = arrayOfNulls<Any>(skuDetails.size)
+        for (i in skuDetails.indices) {
+            skuDetailsDictionaries[i] = convertSkuDetailsToDictionary(
+                skuDetails[i]
+            )
+        }
+        return skuDetailsDictionaries
+    }
 }
