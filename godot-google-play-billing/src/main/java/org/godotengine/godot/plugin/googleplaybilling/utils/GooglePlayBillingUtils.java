@@ -41,6 +41,7 @@ import java.util.List;
 public class GooglePlayBillingUtils {
 	public static Dictionary convertPurchaseToDictionary(Purchase purchase) {
 		Dictionary dictionary = new Dictionary();
+		dictionary.put("original_json", purchase.getOriginalJson());
 		dictionary.put("order_id", purchase.getOrderId());
 		dictionary.put("package_name", purchase.getPackageName());
 		dictionary.put("purchase_state", purchase.getPurchaseState());
