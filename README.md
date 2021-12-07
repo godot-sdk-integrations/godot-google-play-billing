@@ -11,7 +11,7 @@ You can find the docs for this first-party plugin in the [official Godot docs](h
 
 Prerequisites:
 
-- Android SDK (platform version 29)
+- Android SDK (platform version 30)
 - the Godot Android library (`godot-lib.***.release.aar`) for your version of Godot from the [downloads page](https://godotengine.org/download).
 
 Steps to build:
