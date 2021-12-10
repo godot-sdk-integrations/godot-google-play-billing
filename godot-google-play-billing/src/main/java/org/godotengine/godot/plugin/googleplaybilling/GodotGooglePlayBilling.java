@@ -66,6 +66,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
 	private final BillingClient billingClient;
 	private final HashMap<String, SkuDetails> skuDetailsCache = new HashMap<>(); // sku → SkuDetails
+	private boolean calledStartConnection;
 	private String obfuscatedAccountId;
 	private String obfuscatedProfileId;
 
@@ -77,11 +78,13 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 								.enablePendingPurchases()
 								.setListener(this)
 								.build();
+		calledStartConnection = false;
 		obfuscatedAccountId = "";
 		obfuscatedProfileId = "";
 	}
 
 	public void startConnection() {
+		calledStartConnection = true;
 		billingClient.startConnection(this);
 	}
 
@@ -280,7 +283,9 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
 	@Override
 	public void onMainResume() {
-		emitSignal("billing_resume");
+		if (calledStartConnection) {
+			emitSignal("billing_resume");
+		}
 	}
 
 	@NonNull
@@ -292,7 +297,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	@NonNull
 	@Override
 	public List<String> getPluginMethods() {
-		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase");
+		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
 	}
 
 	@NonNull
