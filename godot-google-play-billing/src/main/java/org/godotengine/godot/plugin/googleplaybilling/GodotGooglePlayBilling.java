@@ -34,6 +34,7 @@ import org.godotengine.godot.Dictionary;
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.SignalInfo;
+import org.godotengine.godot.plugin.UsedByGodot;
 import org.godotengine.godot.plugin.googleplaybilling.utils.GooglePlayBillingUtils;
 
 import androidx.annotation.NonNull;
@@ -50,13 +51,18 @@ import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.PriceChangeConfirmationListener;
 import com.android.billingclient.api.PriceChangeFlowParams;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.ProductDetailsResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryPurchasesParams;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +71,7 @@ import java.util.Set;
 public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpdatedListener, BillingClientStateListener, PriceChangeConfirmationListener {
 
 	private final BillingClient billingClient;
-	private final HashMap<String, SkuDetails> skuDetailsCache = new HashMap<>(); // sku → SkuDetails
+	private final HashMap<String, ProductDetails> productDetailsCache = new HashMap<>(); // sku → SkuDetails
 	private boolean calledStartConnection;
 	private String obfuscatedAccountId;
 	private String obfuscatedProfileId;
@@ -83,28 +89,35 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		obfuscatedProfileId = "";
 	}
 
+	@UsedByGodot
 	public void startConnection() {
 		calledStartConnection = true;
 		billingClient.startConnection(this);
 	}
 
+	@UsedByGodot
 	public void endConnection() {
 		billingClient.endConnection();
 	}
 
+	@UsedByGodot
 	public boolean isReady() {
 		return this.billingClient.isReady();
 	}
 
+	@UsedByGodot
 	public int getConnectionState() {
 		return billingClient.getConnectionState();
 	}
 
+	@UsedByGodot
 	public void queryPurchases(String type) {
-		billingClient.queryPurchasesAsync(type, new PurchasesResponseListener() {
+		QueryPurchasesParams params = QueryPurchasesParams.newBuilder().setProductType(type).build();
+
+		billingClient.queryPurchasesAsync(params, new PurchasesResponseListener() {
 			@Override
 			public void onQueryPurchasesResponse(BillingResult billingResult,
-					List<Purchase> purchaseList) {
+					@NonNull List<Purchase> purchaseList) {
 				Dictionary returnValue = new Dictionary();
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
 					returnValue.put("status", 0); // OK = 0
@@ -119,29 +132,34 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 
+	@UsedByGodot
 	public void querySkuDetails(final String[] list, String type) {
-		List<String> skuList = Arrays.asList(list);
+		ArrayList<QueryProductDetailsParams.Product> products = new ArrayList<>();
 
-		SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder()
-												  .setSkusList(skuList)
-												  .setType(type);
+		for (String productId : list) {
+			products.add(QueryProductDetailsParams.Product.newBuilder().setProductId(productId).setProductType(type).build());
+		}
 
-		billingClient.querySkuDetailsAsync(params.build(), new SkuDetailsResponseListener() {
+		QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
+												   .setProductList(products)
+												   .build();
+
+		billingClient.queryProductDetailsAsync(params, new ProductDetailsResponseListener() {
 			@Override
-			public void onSkuDetailsResponse(BillingResult billingResult,
-					List<SkuDetails> skuDetailsList) {
+			public void onProductDetailsResponse(@NonNull BillingResult billingResult, @NonNull List<ProductDetails> list) {
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-					for (SkuDetails skuDetails : skuDetailsList) {
-						skuDetailsCache.put(skuDetails.getSku(), skuDetails);
+					for (ProductDetails productDetails : list) {
+						productDetailsCache.put(productDetails.getProductId(), productDetails);
 					}
-					emitSignal("sku_details_query_completed", (Object)GooglePlayBillingUtils.convertSkuDetailsListToDictionaryObjectArray(skuDetailsList));
+					emitSignal("product_details_query_completed", (Object)GooglePlayBillingUtils.convertProductDetailsListToDictionaryObjectArray(list));
 				} else {
-					emitSignal("sku_details_query_error", billingResult.getResponseCode(), billingResult.getDebugMessage(), list);
+					emitSignal("product_details_query_error", billingResult.getResponseCode(), billingResult.getDebugMessage(), list);
 				}
 			}
 		});
 	}
 
+	@UsedByGodot
 	public void acknowledgePurchase(final String purchaseToken) {
 		AcknowledgePurchaseParams acknowledgePurchaseParams =
 				AcknowledgePurchaseParams.newBuilder()
@@ -149,7 +167,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 						.build();
 		billingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
 			@Override
-			public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+			public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult) {
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
 					emitSignal("purchase_acknowledged", purchaseToken);
 				} else {
@@ -159,6 +177,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 
+	@UsedByGodot
 	public void consumePurchase(String purchaseToken) {
 		ConsumeParams consumeParams = ConsumeParams.newBuilder()
 											  .setPurchaseToken(purchaseToken)
@@ -190,60 +209,58 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		emitSignal("disconnected");
 	}
 
-	public Dictionary confirmPriceChange(String sku) {
-		if (!skuDetailsCache.containsKey(sku)) {
-			Dictionary returnValue = new Dictionary();
-			returnValue.put("status", 1); // FAILED = 1
-			returnValue.put("response_code", null); // Null since there is no ResponseCode to return but to keep the interface (status, response_code, debug_message)
-			returnValue.put("debug_message", "You must query the sku details and wait for the result before confirming a price change!");
-			return returnValue;
-		}
-
-		SkuDetails skuDetails = skuDetailsCache.get(sku);
-
-		PriceChangeFlowParams priceChangeFlowParams = 
-			PriceChangeFlowParams.newBuilder().setSkuDetails(skuDetails).build();
-
-		billingClient.launchPriceChangeConfirmationFlow(getActivity(), priceChangeFlowParams, this);
-		
-		Dictionary returnValue = new Dictionary();
-		returnValue.put("status", 0); // OK = 0
-		return returnValue;
-	}
-
+	@UsedByGodot
 	public Dictionary purchase(String sku) {
-		return purchaseInternal("", sku, 
-			BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY);
+		return purchaseInternal("", sku,
+				BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY);
 	}
 
+	@UsedByGodot
 	public Dictionary updateSubscription(String oldToken, String sku, int prorationMode) {
 		return purchaseInternal(oldToken, sku, prorationMode);
 	}
 
-	private Dictionary purchaseInternal(String oldToken, String sku, int prorationMode) {
-		if (!skuDetailsCache.containsKey(sku)) {
+	private Dictionary purchaseInternal(String oldToken, String productId, int prorationMode) {
+		if (!productDetailsCache.containsKey(productId)) {
 			Dictionary returnValue = new Dictionary();
 			returnValue.put("status", 1); // FAILED = 1
 			returnValue.put("response_code", null); // Null since there is no ResponseCode to return but to keep the interface (status, response_code, debug_message)
-			returnValue.put("debug_message", "You must query the sku details and wait for the result before purchasing!");
+			returnValue.put("debug_message", "You must query the product details and wait for the result before purchasing!");
 			return returnValue;
 		}
 
-		SkuDetails skuDetails = skuDetailsCache.get(sku);
+		ProductDetails productDetails = productDetailsCache.get(productId);
+		assert productDetails != null;
+
+		// TODO: Allow for selecting other than the default/first offer
+
+		String offerToken = null;
+		if (productDetails.getSubscriptionOfferDetails() != null && !productDetails.getSubscriptionOfferDetails().isEmpty()) {
+			offerToken = productDetails.getSubscriptionOfferDetails().get(0).getOfferToken();
+		}
+
+		List<BillingFlowParams.ProductDetailsParams> params = List.of(
+				BillingFlowParams.ProductDetailsParams.newBuilder()
+						.setOfferToken(offerToken)
+						.setProductDetails(productDetails)
+						.build());
+
 		BillingFlowParams.Builder purchaseParamsBuilder = BillingFlowParams.newBuilder();
-		purchaseParamsBuilder.setSkuDetails(skuDetails);
+		purchaseParamsBuilder.setProductDetailsParamsList(params);
+
 		if (!obfuscatedAccountId.isEmpty()) {
 			purchaseParamsBuilder.setObfuscatedAccountId(obfuscatedAccountId);
 		}
 		if (!obfuscatedProfileId.isEmpty()) {
 			purchaseParamsBuilder.setObfuscatedProfileId(obfuscatedProfileId);
 		}
+
 		if (!oldToken.isEmpty() && prorationMode != BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY) {
 			BillingFlowParams.SubscriptionUpdateParams updateParams =
-				BillingFlowParams.SubscriptionUpdateParams.newBuilder()
-					.setOldSkuPurchaseToken(oldToken)
-					.setReplaceSkusProrationMode(prorationMode)
-					.build();
+					BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+							.setOldPurchaseToken(oldToken)
+							.setReplaceProrationMode(prorationMode)
+							.build();
 			purchaseParamsBuilder.setSubscriptionUpdateParams(updateParams);
 		}
 		BillingResult result = billingClient.launchBillingFlow(getActivity(), purchaseParamsBuilder.build());
@@ -258,11 +275,14 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		}
 
 		return returnValue;
-	}	
+	}
+
+	@UsedByGodot
 	public void setObfuscatedAccountId(String accountId) {
 		obfuscatedAccountId = accountId;
 	}
 
+	@UsedByGodot
 	public void setObfuscatedProfileId(String profileId) {
 		obfuscatedProfileId = profileId;
 	}
@@ -296,12 +316,6 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
 	@NonNull
 	@Override
-	public List<String> getPluginMethods() {
-		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
-	}
-
-	@NonNull
-	@Override
 	public Set<SignalInfo> getPluginSignals() {
 		Set<SignalInfo> signals = new ArraySet<>();
 
@@ -312,8 +326,8 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		signals.add(new SignalInfo("purchases_updated", Object[].class));
 		signals.add(new SignalInfo("query_purchases_response", Object.class));
 		signals.add(new SignalInfo("purchase_error", Integer.class, String.class));
-		signals.add(new SignalInfo("sku_details_query_completed", Object[].class));
-		signals.add(new SignalInfo("sku_details_query_error", Integer.class, String.class, String[].class));
+		signals.add(new SignalInfo("product_details_query_completed", Object[].class));
+		signals.add(new SignalInfo("product_details_query_error", Integer.class, String.class, String[].class));
 		signals.add(new SignalInfo("price_change_acknowledged", Integer.class));
 		signals.add(new SignalInfo("purchase_acknowledged", String.class));
 		signals.add(new SignalInfo("purchase_acknowledgement_error", Integer.class, String.class, String.class));

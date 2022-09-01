@@ -32,6 +32,7 @@ package org.godotengine.godot.plugin.googleplaybilling.utils;
 
 import org.godotengine.godot.Dictionary;
 
+import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.SkuDetails;
 
@@ -51,33 +52,59 @@ public class GooglePlayBillingUtils {
 		dictionary.put("signature", purchase.getSignature());
 		// PBL V4 replaced getSku with getSkus to support multi-sku purchases,
 		// use the first entry for "sku" and generate an array for "skus"
-		ArrayList<String> skus = purchase.getSkus();
-		dictionary.put("sku", skus.get(0));
-		String[] skusArray = skus.toArray(new String[0]);
-		dictionary.put("skus", skusArray);
+		String[] products = purchase.getProducts().toArray(new String[0]);
+		dictionary.put("products", products);
 		dictionary.put("is_acknowledged", purchase.isAcknowledged());
 		dictionary.put("is_auto_renewing", purchase.isAutoRenewing());
 		return dictionary;
 	}
 
-	public static Dictionary convertSkuDetailsToDictionary(SkuDetails details) {
+	public static Dictionary convertProductDetailsToDictionary(ProductDetails details) {
 		Dictionary dictionary = new Dictionary();
-		dictionary.put("sku", details.getSku());
+		dictionary.put("id", details.getProductId());
 		dictionary.put("title", details.getTitle());
 		dictionary.put("description", details.getDescription());
-		dictionary.put("price", details.getPrice());
-		dictionary.put("price_currency_code", details.getPriceCurrencyCode());
-		dictionary.put("price_amount_micros", details.getPriceAmountMicros());
-		dictionary.put("free_trial_period", details.getFreeTrialPeriod());
-		dictionary.put("icon_url", details.getIconUrl());
-		dictionary.put("introductory_price", details.getIntroductoryPrice());
-		dictionary.put("introductory_price_amount_micros", details.getIntroductoryPriceAmountMicros());
-		dictionary.put("introductory_price_cycles", details.getIntroductoryPriceCycles());
-		dictionary.put("introductory_price_period", details.getIntroductoryPricePeriod());
-		dictionary.put("original_price", details.getOriginalPrice());
-		dictionary.put("original_price_amount_micros", details.getOriginalPriceAmountMicros());
-		dictionary.put("subscription_period", details.getSubscriptionPeriod());
-		dictionary.put("type", details.getType());
+		dictionary.put("type", details.getProductType());
+
+		ProductDetails.OneTimePurchaseOfferDetails oneTimePurchaseOfferDetails = details.getOneTimePurchaseOfferDetails();
+		if (oneTimePurchaseOfferDetails != null) {
+			Dictionary oneTimePurchaseDetailsDictionary = new Dictionary();
+			oneTimePurchaseDetailsDictionary.put("formatted_price", oneTimePurchaseOfferDetails.getFormattedPrice());
+			oneTimePurchaseDetailsDictionary.put("price_amount_micros", oneTimePurchaseOfferDetails.getPriceAmountMicros());
+			oneTimePurchaseDetailsDictionary.put("price_currency_code", oneTimePurchaseOfferDetails.getPriceCurrencyCode());
+			dictionary.put("one_time_purchase_details", oneTimePurchaseDetailsDictionary);
+		}
+
+		List<ProductDetails.SubscriptionOfferDetails> subscriptionOfferDetailsList = details.getSubscriptionOfferDetails();
+
+		if (subscriptionOfferDetailsList != null && !subscriptionOfferDetailsList.isEmpty()) {
+			ArrayList<Dictionary> subscriptionOfferDetailsDictionaryList = new ArrayList<>();
+
+			for (ProductDetails.SubscriptionOfferDetails subscriptionOfferDetails : subscriptionOfferDetailsList) {
+				Dictionary subscriptionOfferDetailsDictionary = new Dictionary();
+				subscriptionOfferDetailsDictionary.put("offer_token", subscriptionOfferDetails.getOfferToken());
+				subscriptionOfferDetailsDictionary.put("offer_tags", subscriptionOfferDetails.getOfferTags());
+
+				ArrayList<Dictionary> pricingPhasesDictionaryList = new ArrayList<>();
+				for (ProductDetails.PricingPhase pricingPhase : subscriptionOfferDetails.getPricingPhases().getPricingPhaseList()) {
+					Dictionary pricingPhasesDictionary = new Dictionary();
+					pricingPhasesDictionary.put("billing_cycle_count", pricingPhase.getBillingCycleCount());
+					pricingPhasesDictionary.put("billing_period", pricingPhase.getBillingPeriod());
+					pricingPhasesDictionary.put("formatted_price", pricingPhase.getFormattedPrice());
+					pricingPhasesDictionary.put("price_amount_micros", pricingPhase.getPriceAmountMicros());
+					pricingPhasesDictionary.put("price_currency_code", pricingPhase.getPriceCurrencyCode());
+					pricingPhasesDictionary.put("recurrence_mode", pricingPhase.getRecurrenceMode());
+					pricingPhasesDictionaryList.add(pricingPhasesDictionary);
+				}
+
+				subscriptionOfferDetailsDictionary.put("pricing_phases", pricingPhasesDictionaryList);
+
+				subscriptionOfferDetailsDictionaryList.add(subscriptionOfferDetailsDictionary);
+			}
+
+			dictionary.put("subscription_offer_details", subscriptionOfferDetailsDictionaryList);
+		}
+
 		return dictionary;
 	}
 
@@ -91,11 +118,11 @@ public class GooglePlayBillingUtils {
 		return purchaseDictionaries;
 	}
 
-	public static Object[] convertSkuDetailsListToDictionaryObjectArray(List<SkuDetails> skuDetails) {
-		Object[] skuDetailsDictionaries = new Object[skuDetails.size()];
+	public static Object[] convertProductDetailsListToDictionaryObjectArray(List<ProductDetails> productDetails) {
+		Object[] skuDetailsDictionaries = new Object[productDetails.size()];
 
-		for (int i = 0; i < skuDetails.size(); i++) {
-			skuDetailsDictionaries[i] = GooglePlayBillingUtils.convertSkuDetailsToDictionary(skuDetails.get(i));
+		for (int i = 0; i < productDetails.size(); i++) {
+			skuDetailsDictionaries[i] = GooglePlayBillingUtils.convertProductDetailsToDictionary(productDetails.get(i));
 		}
 
 		return skuDetailsDictionaries;
