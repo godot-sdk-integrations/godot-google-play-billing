@@ -159,6 +159,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 
+
 	public void consumePurchase(String purchaseToken) {
 		ConsumeParams consumeParams = ConsumeParams.newBuilder()
 											  .setPurchaseToken(purchaseToken)
