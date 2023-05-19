@@ -35,6 +35,7 @@ import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.SignalInfo;
 import org.godotengine.godot.plugin.googleplaybilling.utils.GooglePlayBillingUtils;
+import org.godotengine.godot.plugin.UsedByGodot;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -91,15 +92,16 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	public void endConnection() {
 		billingClient.endConnection();
 	}
-
+	@UsedByGodot
 	public boolean isReady() {
 		return this.billingClient.isReady();
 	}
-
+	@UsedByGodot
 	public int getConnectionState() {
 		return billingClient.getConnectionState();
 	}
 
+	@UsedByGodot
 	public void queryPurchases(String type) {
 		billingClient.queryPurchasesAsync(type, new PurchasesResponseListener() {
 			@Override
@@ -118,7 +120,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 			}
 		});
 	}
-
+	@UsedByGodot
 	public void querySkuDetails(final String[] list, String type) {
 		List<String> skuList = Arrays.asList(list);
 
@@ -141,7 +143,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 			}
 		});
 	}
-
+	@UsedByGodot
 	public void acknowledgePurchase(final String purchaseToken) {
 		AcknowledgePurchaseParams acknowledgePurchaseParams =
 				AcknowledgePurchaseParams.newBuilder()
@@ -159,7 +161,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 
-
+	@UsedByGodot
 	public void consumePurchase(String purchaseToken) {
 		ConsumeParams consumeParams = ConsumeParams.newBuilder()
 											  .setPurchaseToken(purchaseToken)
@@ -190,7 +192,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	public void onBillingServiceDisconnected() {
 		emitSignal("disconnected");
 	}
-
+	@UsedByGodot
 	public Dictionary confirmPriceChange(String sku) {
 		if (!skuDetailsCache.containsKey(sku)) {
 			Dictionary returnValue = new Dictionary();
@@ -211,12 +213,12 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		returnValue.put("status", 0); // OK = 0
 		return returnValue;
 	}
-
+	@UsedByGodot
 	public Dictionary purchase(String sku) {
 		return purchaseInternal("", sku, 
 			BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY);
 	}
-
+	@UsedByGodot
 	public Dictionary updateSubscription(String oldToken, String sku, int prorationMode) {
 		return purchaseInternal(oldToken, sku, prorationMode);
 	}
@@ -259,11 +261,12 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		}
 
 		return returnValue;
-	}	
+	}
+	@UsedByGodot
 	public void setObfuscatedAccountId(String accountId) {
 		obfuscatedAccountId = accountId;
 	}
-
+	@UsedByGodot
 	public void setObfuscatedProfileId(String profileId) {
 		obfuscatedProfileId = profileId;
 	}
