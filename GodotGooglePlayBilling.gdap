@@ -2,7 +2,7 @@
 
 name="GodotGooglePlayBilling"
 binary_type="local"
-binary="GodotGooglePlayBilling.2.0.0-rc.1.release.aar"
+binary="GodotGooglePlayBilling.2.0.0-rc.2.release.aar"
 
 [dependencies]
-remote=["com.android.billingclient:billing:5.0.0"]
+remote=["com.android.billingclient:billing:5.2.0"]

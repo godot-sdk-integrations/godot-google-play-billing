@@ -3,7 +3,7 @@ plugins {
 }
 
 ext.pluginVersionCode = 5
-ext.pluginVersionName = "2.0.0-rc.1"
+ext.pluginVersionName = "2.0.0-rc.2"
 
 android {
     compileSdkVersion 33
@@ -29,6 +29,6 @@ android {
 
 dependencies {
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
-    implementation 'com.android.billingclient:billing:5.0.0'
+    implementation 'com.android.billingclient:billing:5.2.0'
     compileOnly fileTree(dir: 'libs', include: ['godot-lib*.aar'])
 }
