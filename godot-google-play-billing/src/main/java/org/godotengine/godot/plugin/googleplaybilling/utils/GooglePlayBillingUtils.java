@@ -97,12 +97,14 @@ public class GooglePlayBillingUtils {
 					pricingPhasesDictionaryList.add(pricingPhasesDictionary);
 				}
 
-				subscriptionOfferDetailsDictionary.put("pricing_phases", pricingPhasesDictionaryList);
+				Object[] pricingPhasesArray = pricingPhasesDictionaryList.toArray();
+				subscriptionOfferDetailsDictionary.put("pricing_phases", pricingPhasesArray);
 
 				subscriptionOfferDetailsDictionaryList.add(subscriptionOfferDetailsDictionary);
 			}
 
-			dictionary.put("subscription_offer_details", subscriptionOfferDetailsDictionaryList);
+			Object[] subscriptionOfferDetailsArray = subscriptionOfferDetailsDictionaryList.toArray();
+			dictionary.put("subscription_offer_details", subscriptionOfferDetailsArray);
 		}
 
 		return dictionary;
