@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  GooglePlayBillingUtils.java                                                    */
+/*  GooglePlayBillingUtils.java                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
