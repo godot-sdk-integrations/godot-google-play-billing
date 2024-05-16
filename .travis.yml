@@ -16,5 +16,5 @@ cache:
     - $HOME/.gradle/wrapper/
 
 script:
-  - wget -P ./godot-google-play-billing/libs https://downloads.tuxfamily.org/godotengine/3.2.2/rc2/godot-lib.3.2.2.rc2.release.aar
+  - wget -P ./godot-google-play-billing/libs https://downloads.tuxfamily.org/godotengine/4.2.2/godot-lib.4.2.2.stable.template_release.aar
   - ./gradlew build -s
