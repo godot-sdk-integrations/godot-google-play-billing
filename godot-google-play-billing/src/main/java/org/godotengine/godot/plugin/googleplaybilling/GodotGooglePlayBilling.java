@@ -49,8 +49,7 @@ import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
-import com.android.billingclient.api.PriceChangeConfirmationListener;
-import com.android.billingclient.api.PriceChangeFlowParams;
+import com.android.billingclient.api.PendingPurchasesParams;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
@@ -63,7 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpdatedListener, BillingClientStateListener, PriceChangeConfirmationListener {
+public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpdatedListener, BillingClientStateListener {
 
 	private final BillingClient billingClient;
 	private final HashMap<String, SkuDetails> skuDetailsCache = new HashMap<>(); // sku → SkuDetails
@@ -74,9 +73,12 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	public GodotGooglePlayBilling(Godot godot) {
 		super(godot);
 
+		PendingPurchasesParams pendingPurchasesParams = 
+			PendingPurchasesParams.newBuilder().enableOneTimeProducts().build();
+
 		billingClient = BillingClient
 								.newBuilder(getActivity())
-								.enablePendingPurchases()
+								.enablePendingPurchases(pendingPurchasesParams)
 								.setListener(this)
 								.build();
 		calledStartConnection = false;
@@ -203,11 +205,6 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		}
 
 		SkuDetails skuDetails = skuDetailsCache.get(sku);
-
-		PriceChangeFlowParams priceChangeFlowParams = 
-			PriceChangeFlowParams.newBuilder().setSkuDetails(skuDetails).build();
-
-		billingClient.launchPriceChangeConfirmationFlow(getActivity(), priceChangeFlowParams, this);
 		
 		Dictionary returnValue = new Dictionary();
 		returnValue.put("status", 0); // OK = 0
@@ -216,14 +213,14 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	@UsedByGodot
 	public Dictionary purchase(String sku) {
 		return purchaseInternal("", sku, 
-			BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY);
+			BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE);
 	}
 	@UsedByGodot
-	public Dictionary updateSubscription(String oldToken, String sku, int prorationMode) {
-		return purchaseInternal(oldToken, sku, prorationMode);
+	public Dictionary updateSubscription(String oldToken, String sku, int replacementMode) {
+		return purchaseInternal(oldToken, sku, replacementMode);
 	}
 
-	private Dictionary purchaseInternal(String oldToken, String sku, int prorationMode) {
+	private Dictionary purchaseInternal(String oldToken, String sku, int replacementMode) {
 		if (!skuDetailsCache.containsKey(sku)) {
 			Dictionary returnValue = new Dictionary();
 			returnValue.put("status", 1); // FAILED = 1
@@ -241,11 +238,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		if (!obfuscatedProfileId.isEmpty()) {
 			purchaseParamsBuilder.setObfuscatedProfileId(obfuscatedProfileId);
 		}
-		if (!oldToken.isEmpty() && prorationMode != BillingFlowParams.ProrationMode.UNKNOWN_SUBSCRIPTION_UPGRADE_DOWNGRADE_POLICY) {
+		if (!oldToken.isEmpty() && replacementMode != BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE) {
 			BillingFlowParams.SubscriptionUpdateParams updateParams =
 				BillingFlowParams.SubscriptionUpdateParams.newBuilder()
-					.setOldSkuPurchaseToken(oldToken)
-					.setReplaceSkusProrationMode(prorationMode)
+					.setOldPurchaseToken(oldToken)
+					.setSubscriptionReplacementMode(replacementMode)
 					.build();
 			purchaseParamsBuilder.setSubscriptionUpdateParams(updateParams);
 		}
@@ -278,11 +275,6 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		} else {
 			emitSignal("purchase_error", billingResult.getResponseCode(), billingResult.getDebugMessage());
 		}
-	}
-
-	@Override
-	public void onPriceChangeConfirmationResult(BillingResult billingResult) {
-		emitSignal("price_change_acknowledged", billingResult.getResponseCode());
 	}
 
 	@Override
