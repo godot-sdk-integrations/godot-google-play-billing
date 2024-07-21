@@ -43,9 +43,9 @@ public partial class GooglePlayBillingConfig : EditorExportPlugin
     private const string PLUGIN_NAME = "GodotGooglePlayBilling";
 
     // Dependency paths relative to the project's addons folder.
-    private const string LIB_PATH_RELEASE = "google_play_billing/libs/GodotGooglePlayBilling.1.2.0.release.aar";
-    private const string LIB_PATH_DEBUG = "google_play_billing/libs/GodotGooglePlayBilling.1.2.0.debug.aar";
-    private const string BILLING_DEPENDENCY = "com.android.billingclient:billing:5.2.1";
+    private const string LIB_PATH_RELEASE = "google_play_billing/libs/GodotGooglePlayBilling.3.0.0.release.aar";
+    private const string LIB_PATH_DEBUG = "google_play_billing/libs/GodotGooglePlayBilling.3.0.0.debug.aar";
+    private const string BILLING_DEPENDENCY = "com.android.billingclient:billing:7.0.0";
 
 
     public override bool _SupportsPlatform(EditorExportPlatform platform)

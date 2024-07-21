@@ -34,9 +34,9 @@ extends EditorExportPlugin
 var _plugin_name = "GodotGooglePlayBilling"
 
 # Dependency paths relative to the project's addons folder.
-var _lib_path_release = "google_play_billing/libs/GodotGooglePlayBilling.1.2.0.release.aar"
-var _lib_path_debug = "google_play_billing/libs/GodotGooglePlayBilling.1.2.0.debug.aar"
-var _billing_dependency = "com.android.billingclient:billing:5.2.1"
+var _lib_path_release = "google_play_billing/libs/GodotGooglePlayBilling.3.0.0.release.aar"
+var _lib_path_debug = "google_play_billing/libs/GodotGooglePlayBilling.3.0.0.debug.aar"
+var _billing_dependency = "com.android.billingclient:billing:7.0.0"
 
 func _supports_platform(platform):
     if (platform is EditorExportPlatformAndroid):
