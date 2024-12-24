@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.godotengine.godot.plugin.googleplaybilling">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
 
