@@ -2,18 +2,23 @@ plugins {
     id 'com.android.library'
 }
 
-ext.pluginVersionCode = 5
-ext.pluginVersionName = "1.2.0"
+ext.pluginVersionCode = 6
+ext.pluginVersionName = "1.3.0"
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "30.0.3"
+    namespace 'org.godotengine.godot.plugin.googleplaybilling'
+    compileSdkVersion 34
 
     defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion 31
+        minSdkVersion 21
+        targetSdkVersion 34
         versionCode pluginVersionCode
         versionName pluginVersionName
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     libraryVariants.all { variant ->
