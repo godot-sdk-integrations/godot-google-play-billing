@@ -123,7 +123,7 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 	}
 
 	@UsedByGodot
-	fun launchBillingFlow(productId: String, offerToken: String = ""): Dictionary {
+	fun launchBillingFlow(productId: String, basePlanId: String, offerId: String): Dictionary {
 		if (!productDetailsMap.containsKey(productId)) {
 			val debugMessage = "productId not found! You must query the sku details and wait for the result before purchasing."
 			return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
@@ -135,7 +135,20 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 			.setProductDetails(productDetails)
 
 		if (productDetails.productType == BillingClient.ProductType.SUBS) {
-			productParamsBuilder.setOfferToken(offerToken)
+			val offer = productDetails.subscriptionOfferDetails?.let { offers ->
+				if (offerId.isBlank()) {
+					offers.firstOrNull { it.basePlanId == basePlanId && it.offerId == null }
+				} else {
+					offers.firstOrNull { it.basePlanId == basePlanId && it.offerId == offerId }
+				}
+			}
+
+			if (offer != null) {
+				productParamsBuilder.setOfferToken(offer.offerToken)
+			} else {
+				val debugMessage = "Invalid base_plan_id or offer_id. Make sure basePlanId exists, and offerId is correct if provided."
+				return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
+			}
 		}
 		val productParams = productParamsBuilder.build()
 
