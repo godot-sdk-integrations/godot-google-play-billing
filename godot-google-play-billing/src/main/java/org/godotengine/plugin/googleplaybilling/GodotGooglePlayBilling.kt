@@ -1,7 +1,5 @@
 package org.godotengine.plugin.googleplaybilling
 
-import android.app.Activity
-import android.view.View
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
