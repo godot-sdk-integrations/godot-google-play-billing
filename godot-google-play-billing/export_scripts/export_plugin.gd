@@ -2,21 +2,23 @@
 extends EditorPlugin
 
 # A class member to hold the editor export plugin during its lifecycle.
-var export_plugin : AndroidExportPlugin
+var export_plugin : BillingPluginExportPlugin
 
 func _enter_tree():
 	# Initialization of the plugin goes here.
-	export_plugin = AndroidExportPlugin.new()
+	export_plugin = BillingPluginExportPlugin.new()
 	add_export_plugin(export_plugin)
+	add_autoload_singleton("BillingClient","BillingClient.gd")
 
 
 func _exit_tree():
 	# Clean-up of the plugin goes here.
 	remove_export_plugin(export_plugin)
+	remove_autoload_singleton("BillingClient")
 	export_plugin = null
 
 
-class AndroidExportPlugin extends EditorExportPlugin:
+class BillingPluginExportPlugin extends EditorExportPlugin:
 	var _plugin_name = "GodotGooglePlayBilling"
 
 	func _supports_platform(platform):
