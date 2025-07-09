@@ -120,13 +120,15 @@ func query_purchases(product_type: ProductType) -> void:
 		_plugin_singleton.queryPurchases(product_type_str)
 
 
-func launchBillingFlow(product_id: String, offer_token: String = "") -> Dictionary:
+func purchase(product_id: String) -> Dictionary:
 	if _plugin_singleton:
-		var result = _plugin_singleton.launchBillingFlow(product_id, offer_token)
-		if result != null:
-			return result
+		return _plugin_singleton.launchBillingFlow(product_id, "", "")
 	return Dictionary()
 
+func purchase_subscription(product_id: String, base_plan_id: String, offer_id: String = "") -> Dictionary:
+	if _plugin_singleton:
+		return _plugin_singleton.launchBillingFlow(product_id, base_plan_id, offer_id)
+	return Dictionary()
 
 func consume_purchase(purchase_token: String):
 	if _plugin_singleton:
