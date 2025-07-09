@@ -138,3 +138,11 @@ func consume_purchase(purchase_token: String):
 func acknowledge_purchase(purchase_token: String):
 	if _plugin_singleton:
 		_plugin_singleton.acknowledgePurchase(purchase_token)
+
+func set_obfuscated_account_id(account_id: String):
+	if _plugin_singleton:
+		_plugin_singleton.setObfuscatedAccountId(account_id)
+
+func set_obfuscated_profile_id(profile_id: String):
+	if _plugin_singleton:
+		_plugin_singleton.setObfuscatedProfileId(profile_id)

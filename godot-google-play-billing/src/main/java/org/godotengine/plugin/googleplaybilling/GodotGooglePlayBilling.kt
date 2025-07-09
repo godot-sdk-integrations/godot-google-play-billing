@@ -23,6 +23,8 @@ import org.godotengine.godot.plugin.UsedByGodot
 class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdatedListener {
 	private lateinit var billingClient: BillingClient
 	private var productDetailsMap: Map<String, ProductDetails> = emptyMap()
+	private var obfuscatedAccountId: String = ""
+	private var obfuscatedProfileId: String = ""
 
 	override fun getPluginName() = BuildConfig.GODOT_PLUGIN_NAME
 
@@ -150,14 +152,19 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 				return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
 			}
 		}
-		val productParams = productParamsBuilder.build()
 
 		val flowParams = BillingFlowParams.newBuilder()
-			.setProductDetailsParamsList(listOf(productParams))
+			.setProductDetailsParamsList(listOf(productParamsBuilder.build()))
 			.setIsOfferPersonalized(isOfferPersonalized)
-			.build()
 
-		val billingResult = billingClient.launchBillingFlow(activity!!, flowParams)
+		if (!obfuscatedAccountId.isEmpty()) {
+			flowParams.setObfuscatedAccountId(obfuscatedAccountId)
+		}
+		if (!obfuscatedProfileId.isEmpty()) {
+			flowParams.setObfuscatedProfileId(obfuscatedProfileId)
+		}
+
+		val billingResult = billingClient.launchBillingFlow(activity!!, flowParams.build())
 
 		return Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
 	}
@@ -191,5 +198,15 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 		billingClient.acknowledgePurchase(params) { billingResult ->
 			emitSignal("acknowledge_purchase_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, token = purchaseToken))
 		}
+	}
+
+	@UsedByGodot
+	fun setObfuscatedAccountId(accountId: String) {
+		obfuscatedAccountId = accountId
+	}
+
+	@UsedByGodot
+	fun setObfuscatedProfileId(profileId: String) {
+		obfuscatedProfileId = profileId
 	}
 }
