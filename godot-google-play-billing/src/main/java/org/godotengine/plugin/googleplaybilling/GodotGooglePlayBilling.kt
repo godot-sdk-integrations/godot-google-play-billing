@@ -123,9 +123,9 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 	}
 
 	@UsedByGodot
-	fun launchBillingFlow(productId: String, basePlanId: String, offerId: String): Dictionary {
+	fun launchBillingFlow(productId: String, basePlanId: String, offerId: String, isOfferPersonalized: Boolean = false): Dictionary {
 		if (!productDetailsMap.containsKey(productId)) {
-			val debugMessage = "productId not found! You must query the sku details and wait for the result before purchasing."
+			val debugMessage = "productId not found! You must query the product details and wait for the result before purchasing."
 			return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
 		}
 
@@ -154,6 +154,7 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 
 		val flowParams = BillingFlowParams.newBuilder()
 			.setProductDetailsParamsList(listOf(productParams))
+			.setIsOfferPersonalized(isOfferPersonalized)
 			.build()
 
 		val billingResult = billingClient.launchBillingFlow(activity!!, flowParams)
