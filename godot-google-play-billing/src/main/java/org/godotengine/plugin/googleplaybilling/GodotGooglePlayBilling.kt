@@ -5,6 +5,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.PendingPurchasesParams
@@ -124,8 +125,14 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 		}
 	}
 
-	@UsedByGodot
-	fun launchBillingFlow(productId: String, basePlanId: String, offerId: String, isOfferPersonalized: Boolean = false): Dictionary {
+	private fun launchBillingFlow(
+		productId: String,
+		basePlanId: String = "",
+		offerId: String = "",
+		oldPurchaseToken: String = "",
+		replacementMode: Int = BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE,
+		isOfferPersonalized: Boolean = false
+	): Dictionary {
 		if (!productDetailsMap.containsKey(productId)) {
 			val debugMessage = "productId not found! You must query the product details and wait for the result before purchasing."
 			return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
@@ -148,23 +155,31 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 			if (offer != null) {
 				productParamsBuilder.setOfferToken(offer.offerToken)
 			} else {
-				val debugMessage = "Invalid base_plan_id or offer_id. Make sure basePlanId exists, and offerId is correct if provided."
+				val debugMessage = "Invalid base_plan_id or offer_id. Make sure base_plan_id exists, and offer_id is correct if provided."
 				return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
 			}
 		}
 
-		val flowParams = BillingFlowParams.newBuilder()
+		val flowParamsBuilder = BillingFlowParams.newBuilder()
 			.setProductDetailsParamsList(listOf(productParamsBuilder.build()))
 			.setIsOfferPersonalized(isOfferPersonalized)
 
 		if (!obfuscatedAccountId.isEmpty()) {
-			flowParams.setObfuscatedAccountId(obfuscatedAccountId)
+			flowParamsBuilder.setObfuscatedAccountId(obfuscatedAccountId)
 		}
 		if (!obfuscatedProfileId.isEmpty()) {
-			flowParams.setObfuscatedProfileId(obfuscatedProfileId)
+			flowParamsBuilder.setObfuscatedProfileId(obfuscatedProfileId)
 		}
 
-		val billingResult = billingClient.launchBillingFlow(activity!!, flowParams.build())
+		if (!oldPurchaseToken.isEmpty() && replacementMode != SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE) {
+			val updateParams = SubscriptionUpdateParams.newBuilder()
+				.setOldPurchaseToken(oldPurchaseToken)
+				.setSubscriptionReplacementMode(replacementMode)
+				.build()
+			flowParamsBuilder.setSubscriptionUpdateParams(updateParams)
+		}
+
+		val billingResult = billingClient.launchBillingFlow(activity!!, flowParamsBuilder.build())
 
 		return Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
 	}
@@ -208,5 +223,20 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 	@UsedByGodot
 	fun setObfuscatedProfileId(profileId: String) {
 		obfuscatedProfileId = profileId
+	}
+
+	@UsedByGodot
+	fun purchase(productId: String, isOfferPersonalized: Boolean = false): Dictionary {
+		return launchBillingFlow(productId, isOfferPersonalized = isOfferPersonalized)
+	}
+
+	@UsedByGodot
+	fun purchaseSubscription(productId: String, basePlanId: String, offerId: String, isOfferPersonalized: Boolean = false): Dictionary {
+		return launchBillingFlow(productId, basePlanId, offerId, isOfferPersonalized = isOfferPersonalized)
+	}
+
+	@UsedByGodot
+	fun updateSubscription(productId: String, basePlanId: String, offerId: String, oldPurchaseToken: String, replacementMode: Int, isOfferPersonalized: Boolean = false): Dictionary {
+		return launchBillingFlow(productId, basePlanId, offerId, oldPurchaseToken, replacementMode, isOfferPersonalized)
 	}
 }
