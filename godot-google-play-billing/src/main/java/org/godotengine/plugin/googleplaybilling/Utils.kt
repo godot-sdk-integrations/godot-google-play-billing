@@ -109,7 +109,7 @@ object Utils {
 		val result = Dictionary()
 		result["response_code"] = responseCode
 		result["debug_message"] = debugMessage
-		if (resultArray != null) result["resultArray"] = resultArray
+		if (resultArray != null) result["result_array"] = resultArray
 		if (token != null) result["token"] = token
 		return result
 	}

@@ -106,9 +106,13 @@ func get_connection_state() -> int:
 	return ConnectionState.DISCONNECTED
 
 
-func query_product_details(product_list: PackedStringArray, product_type: String) -> void:
+func query_product_details(product_list: PackedStringArray, product_type: ProductType) -> void:
+	var product_type_str = "inapp"
+	if product_type == ProductType.SUBS:
+		product_type_str = "subs"
+
 	if _plugin_singleton:
-		_plugin_singleton.queryProductDetails(product_list, product_type)
+		_plugin_singleton.queryProductDetails(product_list, product_type_str)
 
 
 func query_purchases(product_type: ProductType) -> void:
