@@ -134,9 +134,9 @@ func purchase_subscription(product_id: String, base_plan_id: String, offer_id: S
 		return _plugin_singleton.purchaseSubscription(product_id, base_plan_id, offer_id, is_offer_personalized)
 	return Dictionary()
 
-func update_subscription(product_id: String, old_purchase_token: String, replacement_mode: ReplacementMode, base_plan_id: String, offer_id: String = "", is_offer_personalized: bool = false) -> Dictionary:
+func update_subscription(old_purchase_token: String, replacement_mode: ReplacementMode, new_product_id: String, base_plan_id: String, offer_id: String = "", is_offer_personalized: bool = false) -> Dictionary:
 	if _plugin_singleton:
-		return _plugin_singleton.updateSubscription(product_id, base_plan_id, offer_id, old_purchase_token, replacement_mode, is_offer_personalized)
+		return _plugin_singleton.updateSubscription(new_product_id, base_plan_id, offer_id, old_purchase_token, replacement_mode, is_offer_personalized)
 	return Dictionary()
 
 func consume_purchase(purchase_token: String):
