@@ -75,6 +75,7 @@ func _ready() -> void:
 
 
 func _connect_signals() -> void:
+	_plugin_singleton.connect("connected", connected.emit)
 	_plugin_singleton.connect("disconnected", disconnected.emit)
 	_plugin_singleton.connect("connect_error", connect_error.emit)
 	_plugin_singleton.connect("query_product_details_response", query_product_details_response.emit)
