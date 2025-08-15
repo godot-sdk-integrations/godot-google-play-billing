@@ -59,7 +59,6 @@ import com.android.billingclient.api.ProductDetailsResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
-import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.QueryPurchasesParams;
 import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams;
@@ -136,7 +135,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 	@UsedByGodot
-		public void querySkuDetails(final String[] list, String type) {
+	public void querySkuDetails(final String[] list, String type) {
 
 		List<String> skuList = Arrays.asList(list);
 
@@ -164,7 +163,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 						.build();
 		billingClient.acknowledgePurchase(acknowledgePurchaseParams, new AcknowledgePurchaseResponseListener() {
 			@Override
-			public void onAcknowledgePurchaseResponse(BillingResult billingResult) {
+			public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult) {
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
 					emitSignal("purchase_acknowledged", purchaseToken);
 				} else {
@@ -337,11 +336,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		return "GodotGooglePlayBilling";
 	}
 
-	@NonNull
-	@Override
-	public List<String> getPluginMethods() {
-		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
-	}
+//	@NonNull
+//	@Override
+//	public List<String> getPluginMethods() {
+//		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
+//	}
 
 	@NonNull
 	@Override
