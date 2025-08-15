@@ -32,8 +32,10 @@ package org.godotengine.godot.plugin.googleplaybilling.utils;
 
 import org.godotengine.godot.Dictionary;
 
+import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.SkuDetails;
 
 import java.util.ArrayList;
@@ -101,5 +103,37 @@ public class GooglePlayBillingUtils {
 		}
 
 		return skuDetailsDictionaries;
+	}
+
+//	public static List<QueryProductDetailsParams.Product> convertSkuDetailsStringToProductList(List<String> skuList){
+//		QueryProductDetailsParams queryProductDetailsParams =
+//				QueryProductDetailsParams.newBuilder()
+//						.setProductList(
+//								List.of(
+//										QueryProductDetailsParams.Product.newBuilder()
+//												.setProductId("product_id_example")
+//												.setProductId("")
+//												.setProductType(BillingClient.ProductType.SUBS)
+//												.build()))
+//						.build();
+//        return new QueryProductDetailsParams.Product[0];
+//    }
+	public static QueryProductDetailsParams createQueryParams(List<String> skuList,String type) {
+		List<QueryProductDetailsParams.Product> productList = new ArrayList<>();
+
+		// Add an in-app product
+		for(String sku : skuList )
+		{
+			productList.add(
+					QueryProductDetailsParams.Product.newBuilder()
+							.setProductId(sku) // Replace with your actual in-app product ID
+							.setProductType(type)
+							.build()
+			);
+		}
+
+		return QueryProductDetailsParams.newBuilder()
+				.setProductList(productList)
+				.build();
 	}
 }

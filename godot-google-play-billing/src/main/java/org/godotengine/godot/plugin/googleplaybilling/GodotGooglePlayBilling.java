@@ -30,6 +30,8 @@
 
 package org.godotengine.godot.plugin.googleplaybilling;
 
+import static org.godotengine.godot.plugin.googleplaybilling.utils.GooglePlayBillingUtils.createQueryParams;
+
 import android.os.Build;
 
 import org.godotengine.godot.Dictionary;
@@ -113,7 +115,9 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	}
 
 	@UsedByGodot
-	public void queryPurchases(QueryPurchasesParams qp) {
+	public void queryPurchases(String type) {
+
+		QueryPurchasesParams qp = QueryPurchasesParams.newBuilder().setProductType(type).build();
 		billingClient.queryPurchasesAsync(qp, new PurchasesResponseListener() {
 			@Override
 			public void onQueryPurchasesResponse(@NonNull BillingResult billingResult,
@@ -132,14 +136,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		});
 	}
 	@UsedByGodot
-	public void querySkuDetails(final QueryProductDetailsParams.Product[] list, String type) {
-		List<QueryProductDetailsParams.Product> skuList = Arrays.asList(list);
+		public void querySkuDetails(final String[] list, String type) {
 
-		QueryProductDetailsParams.Builder params = QueryProductDetailsParams.newBuilder()
-												  .setProductList(skuList);
-//												  .setType(type);
+		List<String> skuList = Arrays.asList(list);
 
-		billingClient.queryProductDetailsAsync(params.build(), new ProductDetailsResponseListener() {
+		billingClient.queryProductDetailsAsync(createQueryParams(skuList,type), new ProductDetailsResponseListener() {
 			@Override
 			public void onProductDetailsResponse(@NonNull BillingResult billingResult, @NonNull QueryProductDetailsResult queryProductDetailsResult) {
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
@@ -258,7 +259,7 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
         assert productDetails != null;
         assert offerToken != null;
-        List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
+        List<ProductDetailsParams> productDetailsParamsList =
 				List.of(
 						ProductDetailsParams.newBuilder()
 
@@ -336,11 +337,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 		return "GodotGooglePlayBilling";
 	}
 
-//	@NonNull
-//	@Override
-//	public List<String> getPluginMethods() {
-//		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
-//	}
+	@NonNull
+	@Override
+	public List<String> getPluginMethods() {
+		return Arrays.asList("startConnection", "endConnection", "confirmPriceChange", "purchase", "updateSubscription", "querySkuDetails", "isReady", "getConnectionState", "queryPurchases", "acknowledgePurchase", "consumePurchase", "setObfuscatedAccountId", "setObfuscatedProfileId");
+	}
 
 	@NonNull
 	@Override
