@@ -23,7 +23,8 @@ import org.godotengine.godot.plugin.UsedByGodot
 
 class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdatedListener {
 	private lateinit var billingClient: BillingClient
-	private var productDetailsMap: Map<String, ProductDetails> = emptyMap()
+	private var productDetailsMapInapp: Map<String, ProductDetails> = emptyMap()
+	private var productDetailsMapSubs: Map<String, ProductDetails> = emptyMap()
 	private var obfuscatedAccountId: String = ""
 	private var obfuscatedProfileId: String = ""
 
@@ -100,7 +101,11 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 
 		billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
 			if (billingResult.responseCode == BillingResponseCode.OK) {
-				productDetailsMap = productDetailsList.associateBy { it.productId }
+				if (productType == BillingClient.ProductType.INAPP) {
+					productDetailsMapInapp = productDetailsList.associateBy { it.productId }
+				} else if (productType == BillingClient.ProductType.SUBS) {
+					productDetailsMapSubs = productDetailsList.associateBy { it.productId }
+				}
 				val resultArray = Utils.convertProductDetailsListToArray(productDetailsList)
 				emitSignal("query_product_details_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, resultArray))
 			} else {
@@ -126,6 +131,7 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 	}
 
 	private fun launchBillingFlow(
+		productType: String,
 		productId: String,
 		basePlanId: String = "",
 		offerId: String = "",
@@ -133,6 +139,11 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 		replacementMode: Int = BillingFlowParams.SubscriptionUpdateParams.ReplacementMode.UNKNOWN_REPLACEMENT_MODE,
 		isOfferPersonalized: Boolean = false
 	): Dictionary {
+		val productDetailsMap = when (productType) {
+			BillingClient.ProductType.INAPP -> productDetailsMapInapp
+			BillingClient.ProductType.SUBS -> productDetailsMapSubs
+			else -> error("Unsupported product type: $productType")
+		}
 		if (!productDetailsMap.containsKey(productId)) {
 			val debugMessage = "productId not found! You must query the product details and wait for the result before purchasing."
 			return Utils.createResultDict(BillingResponseCode.DEVELOPER_ERROR, debugMessage)
@@ -227,16 +238,16 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 
 	@UsedByGodot
 	fun purchase(productId: String, isOfferPersonalized: Boolean = false): Dictionary {
-		return launchBillingFlow(productId, isOfferPersonalized = isOfferPersonalized)
+		return launchBillingFlow(BillingClient.ProductType.INAPP, productId, isOfferPersonalized = isOfferPersonalized)
 	}
 
 	@UsedByGodot
 	fun purchaseSubscription(productId: String, basePlanId: String, offerId: String, isOfferPersonalized: Boolean = false): Dictionary {
-		return launchBillingFlow(productId, basePlanId, offerId, isOfferPersonalized = isOfferPersonalized)
+		return launchBillingFlow(BillingClient.ProductType.SUBS, productId, basePlanId, offerId, isOfferPersonalized = isOfferPersonalized)
 	}
 
 	@UsedByGodot
 	fun updateSubscription(productId: String, basePlanId: String, offerId: String, oldPurchaseToken: String, replacementMode: Int, isOfferPersonalized: Boolean = false): Dictionary {
-		return launchBillingFlow(productId, basePlanId, offerId, oldPurchaseToken, replacementMode, isOfferPersonalized)
+		return launchBillingFlow(BillingClient.ProductType.SUBS,productId, basePlanId, offerId, oldPurchaseToken, replacementMode, isOfferPersonalized)
 	}
 }
