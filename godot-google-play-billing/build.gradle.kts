@@ -36,7 +36,7 @@ android {
 
 dependencies {
     implementation("org.godotengine:godot:4.4.1.stable")
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
 }
 
 // BUILD TASKS DEFINITION
