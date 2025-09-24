@@ -2,6 +2,7 @@ package org.godotengine.plugin.googleplaybilling
 
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.UnfetchedProduct
 import org.godotengine.godot.Dictionary
 
 
@@ -29,6 +30,22 @@ object Utils {
 		dict["signature"] = purchase.signature
 		dict["product_ids"] = purchase.products.toTypedArray()
 		return dict
+	}
+
+	fun convertUnfetchedProductListToArray(productList: MutableList<UnfetchedProduct>): Array<Any?> {
+		val array = arrayOfNulls<Any>(productList.size)
+		for (i in productList.indices) {
+			array[i] = unfetchedProductToDictionary(productList[i])
+		}
+
+		return array
+	}
+
+	fun unfetchedProductToDictionary(product: UnfetchedProduct) {
+		val dict = Dictionary()
+		dict["product_id"] = product.productId
+		dict["product_type"] = product.productType
+		dict["status_code"] = product.statusCode
 	}
 
 	fun convertProductDetailsListToArray(detailsList: MutableList<ProductDetails>): Array<Any?> {
@@ -105,12 +122,10 @@ object Utils {
 		return dict
 	}
 
-	fun createResultDict(responseCode: Int, debugMessage: String, resultArray: Array<Any?>? = null, token: String? = null): Dictionary {
+	fun createResultDict(responseCode: Int, debugMessage: String): Dictionary {
 		val result = Dictionary()
 		result["response_code"] = responseCode
 		result["debug_message"] = debugMessage
-		if (resultArray != null) result["result_array"] = resultArray
-		if (token != null) result["token"] = token
 		return result
 	}
 }

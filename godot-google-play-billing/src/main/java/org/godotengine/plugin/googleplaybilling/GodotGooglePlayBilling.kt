@@ -51,6 +51,7 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 		billingClient = BillingClient.newBuilder(activity!!)
 			.setListener(this)
 			.enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+			.enableAutoServiceReconnection()
 			.build()
 	}
 
@@ -99,15 +100,20 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 			.setProductList(productList)
 			.build()
 
-		billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
+		billingClient.queryProductDetailsAsync(params) { billingResult, queryProductDetailsResult ->
 			if (billingResult.responseCode == BillingResponseCode.OK) {
+				var productDetailsList = queryProductDetailsResult.productDetailsList
 				if (productType == BillingClient.ProductType.INAPP) {
 					productDetailsMapInapp = productDetailsList.associateBy { it.productId }
 				} else if (productType == BillingClient.ProductType.SUBS) {
 					productDetailsMapSubs = productDetailsList.associateBy { it.productId }
 				}
-				val resultArray = Utils.convertProductDetailsListToArray(productDetailsList)
-				emitSignal("query_product_details_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, resultArray))
+				val productDetailsArray = Utils.convertProductDetailsListToArray(productDetailsList)
+				val unfetchedProductArray = Utils.convertUnfetchedProductListToArray(queryProductDetailsResult.unfetchedProductList)
+				var resultDict = Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
+				resultDict["product_details"] = productDetailsArray
+				resultDict["unfetched_products"] = unfetchedProductArray
+				emitSignal("query_product_details_response", resultDict)
 			} else {
 				emitSignal("query_product_details_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage))
 			}
@@ -122,8 +128,10 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 
 		billingClient.queryPurchasesAsync(params) { billingResult, purchaseList ->
 			if (billingResult.responseCode == BillingResponseCode.OK) {
-				val resultArray = Utils.convertPurchaseListToArray(purchaseList)
-				emitSignal("query_purchases_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, resultArray))
+				val purchasesArray = Utils.convertPurchaseListToArray(purchaseList)
+				var resultDict = Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
+				resultDict["purchases"] = purchasesArray
+				emitSignal("query_purchases_response", resultDict)
 			} else {
 				emitSignal("query_purchases_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage))
 			}
@@ -197,8 +205,10 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 
 	override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
 		if (billingResult.responseCode == BillingResponseCode.OK && purchases != null) {
-			val resultArray = Utils.convertPurchaseListToArray(purchases)
-			emitSignal("on_purchase_updated", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, resultArray))
+			val purchasesArray = Utils.convertPurchaseListToArray(purchases)
+			var resultDict = Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
+			resultDict["purchases"] = purchasesArray
+			emitSignal("on_purchase_updated", resultDict)
 		} else {
 			emitSignal("on_purchase_updated", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage))
 		}
@@ -211,7 +221,9 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 			.build()
 
 		billingClient.consumeAsync(params) { billingResult, pToken ->
-			emitSignal("consume_purchase_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, token = pToken))
+			var resultDict = Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
+			resultDict["token"] = pToken
+			emitSignal("consume_purchase_response", resultDict)
 		}
 	}
 
@@ -222,7 +234,9 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 			.build()
 
 		billingClient.acknowledgePurchase(params) { billingResult ->
-			emitSignal("acknowledge_purchase_response", Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage, token = purchaseToken))
+			var resultDict = Utils.createResultDict(billingResult.responseCode, billingResult.debugMessage)
+			resultDict["token"] = purchaseToken
+			emitSignal("acknowledge_purchase_response", resultDict)
 		}
 	}
 
