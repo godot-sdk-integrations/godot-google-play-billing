@@ -1,7 +1,7 @@
 # GodotGooglePlayBilling
 Godot Android plugin for the Google Play Billing library
 
-**Note: The master branch and 2.x releases support Godot 4.2 and above. For older Godot versions, use the [1.x](https://github.com/godot-sdk-integrations/godot-google-play-billing/tree/1.x) branch and 1.x releases.**
+**Note: The master branch supports Godot 4.2 and above. For older Godot versions, use the [1.x](https://github.com/godot-sdk-integrations/godot-google-play-billing/tree/1.x) branch and 1.x releases.**
 
 ## Quick Start
 
