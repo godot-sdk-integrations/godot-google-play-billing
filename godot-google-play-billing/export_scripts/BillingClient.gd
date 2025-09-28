@@ -1,4 +1,4 @@
-extends Node
+class_name BillingClient extends Node
 
 signal connected
 signal disconnected
@@ -65,7 +65,7 @@ var _plugin_singleton: JNISingleton
 var _plugin_name: String = "GodotGooglePlayBilling"
 
 
-func _ready() -> void:
+func _init() -> void:
 	if Engine.has_singleton(_plugin_name):
 		_plugin_singleton = Engine.get_singleton(_plugin_name)
 		_plugin_singleton.initPlugin()
