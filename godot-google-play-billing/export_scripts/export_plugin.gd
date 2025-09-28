@@ -34,9 +34,9 @@ class BillingPluginExportPlugin extends EditorExportPlugin:
 
 	func _get_android_dependencies(platform, debug):
 		if debug:
-			return PackedStringArray(["com.android.billingclient:billing-ktx:7.1.1"])
+			return PackedStringArray(["com.android.billingclient:billing-ktx:8.0.0"])
 		else:
-			return PackedStringArray(["com.android.billingclient:billing-ktx:7.1.1"])
+			return PackedStringArray(["com.android.billingclient:billing-ktx:8.0.0"])
 
 	func _get_name():
 		return _plugin_name
