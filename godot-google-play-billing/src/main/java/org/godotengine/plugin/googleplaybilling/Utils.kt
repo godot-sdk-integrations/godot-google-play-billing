@@ -41,11 +41,12 @@ object Utils {
 		return array
 	}
 
-	fun unfetchedProductToDictionary(product: UnfetchedProduct) {
+	fun unfetchedProductToDictionary(product: UnfetchedProduct): Dictionary {
 		val dict = Dictionary()
 		dict["product_id"] = product.productId
 		dict["product_type"] = product.productType
 		dict["status_code"] = product.statusCode
+		return dict
 	}
 
 	fun convertProductDetailsListToArray(detailsList: MutableList<ProductDetails>): Array<Any?> {
