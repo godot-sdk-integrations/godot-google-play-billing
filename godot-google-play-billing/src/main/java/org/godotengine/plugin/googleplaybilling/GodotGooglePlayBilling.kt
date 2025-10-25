@@ -14,11 +14,15 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
+
 import org.godotengine.godot.Dictionary
 import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
+
+import android.content.Intent
+import androidx.core.net.toUri
 
 
 class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdatedListener {
@@ -263,5 +267,19 @@ class GodotGooglePlayBilling(godot: Godot): GodotPlugin(godot), PurchasesUpdated
 	@UsedByGodot
 	fun updateSubscription(productId: String, basePlanId: String, offerId: String, oldPurchaseToken: String, replacementMode: Int, isOfferPersonalized: Boolean = false): Dictionary {
 		return launchBillingFlow(BillingClient.ProductType.SUBS,productId, basePlanId, offerId, oldPurchaseToken, replacementMode, isOfferPersonalized)
+	}
+
+	@UsedByGodot
+	fun openSubscriptions(productId: String) {
+		if (activity == null) {
+			return
+		}
+		val uri = if (productId.isEmpty()) {
+			"https://play.google.com/store/account/subscriptions".toUri()
+		} else {
+			"https://play.google.com/store/account/subscriptions?sku=$productId&package=${activity!!.packageName}".toUri()
+		}
+		val intent = Intent(Intent.ACTION_VIEW, uri)
+		activity!!.startActivity(intent)
 	}
 }
