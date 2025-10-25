@@ -73,7 +73,6 @@ func _init() -> void:
 	elif OS.has_feature("template"):
 		printerr(_plugin_name, " singleton not found!")
 
-
 func _connect_signals() -> void:
 	_plugin_singleton.connect("connected", connected.emit)
 	_plugin_singleton.connect("disconnected", disconnected.emit)
@@ -84,28 +83,23 @@ func _connect_signals() -> void:
 	_plugin_singleton.connect("consume_purchase_response", consume_purchase_response.emit)
 	_plugin_singleton.connect("acknowledge_purchase_response", acknowledge_purchase_response.emit)
 
-
 func start_connection() -> void:
 	if _plugin_singleton:
 		_plugin_singleton.startConnection()
 
-
 func end_connection() -> void:
 	if _plugin_singleton:
 		_plugin_singleton.endConnection()
-
 
 func is_ready() -> bool:
 	if _plugin_singleton:
 		return _plugin_singleton.isReady()
 	return false
 
-
 func get_connection_state() -> int:
 	if _plugin_singleton:
 		return _plugin_singleton.getConnectionState()
 	return ConnectionState.DISCONNECTED
-
 
 func query_product_details(product_list: PackedStringArray, product_type: ProductType) -> void:
 	var product_type_str = "inapp"
@@ -115,7 +109,6 @@ func query_product_details(product_list: PackedStringArray, product_type: Produc
 	if _plugin_singleton:
 		_plugin_singleton.queryProductDetails(product_list, product_type_str)
 
-
 func query_purchases(product_type: ProductType) -> void:
 	var product_type_str = "inapp"
 	if product_type == ProductType.SUBS:
@@ -123,7 +116,6 @@ func query_purchases(product_type: ProductType) -> void:
 	
 	if _plugin_singleton:
 		_plugin_singleton.queryPurchases(product_type_str)
-
 
 func purchase(product_id: String, is_offer_personalized: bool = false) -> Dictionary:
 	if _plugin_singleton:
@@ -144,7 +136,6 @@ func consume_purchase(purchase_token: String):
 	if _plugin_singleton:
 		_plugin_singleton.consumePurchase(purchase_token)
 
-
 func acknowledge_purchase(purchase_token: String):
 	if _plugin_singleton:
 		_plugin_singleton.acknowledgePurchase(purchase_token)
@@ -156,3 +147,7 @@ func set_obfuscated_account_id(account_id: String):
 func set_obfuscated_profile_id(profile_id: String):
 	if _plugin_singleton:
 		_plugin_singleton.setObfuscatedProfileId(profile_id)
+
+func open_subscriptions_page(product_id: String = ""):
+	if _plugin_singleton:
+		_plugin_singleton.openSubscriptions(product_id)
