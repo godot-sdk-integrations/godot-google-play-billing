@@ -28,3 +28,8 @@ In Godot, go to: **Project > Export > Android > gradle/use_gradle_build** and en
 ## Documentation
 
 Full documentation is available at: https://docs.godotengine.org/en/latest/tutorials/platform/android/android_in_app_purchases.html
+
+## Demo
+
+You use this minimal [IAP store demo](https://github.com/godot-sdk-integrations/godot-google-play-billing/tree/master/demo) for reference.
+<img src="https://github.com/user-attachments/assets/d927a4a4-45e0-45b8-9f0e-51f0f202240e" width="80%" />
