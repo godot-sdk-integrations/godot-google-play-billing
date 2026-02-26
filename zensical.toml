@@ -1,0 +1,40 @@
+[project]
+site_name = "Godot Google Play Billing"
+site_description = "Godot Android plugin for Google Play Billing."
+site_author = "syntaxerror247"
+
+nav = [
+  "index.md",
+  "Installation.md"
+]
+
+copyright = """
+Copyright © Godot Engine Contributors
+"""
+
+[project.theme]
+language = "en"
+favicon = "https://godotengine.org/assets/press/icon_color.svg"
+logo = "https://godotengine.org/assets/press/icon_color.svg"
+
+
+features = [
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "navigation.footer",
+  "navigation.instant",
+  "navigation.instant.progress",
+  "navigation.top",
+  "search.highlight"
+]
+
+[[project.theme.palette]]
+scheme = "default"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
