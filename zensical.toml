@@ -2,16 +2,15 @@
 site_name = "Godot Google Play Billing"
 site_description = "Godot Android plugin for Google Play Billing."
 site_author = "syntaxerror247"
+repo_url = "https://github.com/godot-sdk-integrations/godot-google-play-billing"
+repo_name = "GodotGooglePlayBilling"
+copyright = "Copyright &copy; 2020 Godot Engine Contributors"
 
 nav = [
   "index.md",
   "Installation.md",
   "quickstart.md"
 ]
-
-copyright = """
-Copyright © Godot Engine Contributors
-"""
 
 [project.theme]
 language = "en"
