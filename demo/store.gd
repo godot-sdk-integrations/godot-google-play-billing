@@ -21,7 +21,7 @@ func _init() -> void:
 	billing_client.connect_error.connect(_on_connect_error)
 	billing_client.query_product_details_response.connect(_on_query_product_details)
 	billing_client.query_purchases_response.connect(_on_query_purchases)
-	billing_client.on_purchase_updated.connect(_on_purchases_updated)
+	billing_client.on_purchase_updated.connect(_on_purchase_updated)
 	
 	billing_client.start_connection()
 
@@ -95,7 +95,7 @@ func _on_query_purchases(result: Dictionary) -> void:
 		_process_purchase(purchase, true)
 
 
-func _on_purchases_updated(result: Dictionary) -> void:
+func _on_purchase_updated(result: Dictionary) -> void:
 	if result.response_code != BillingClient.BillingResponseCode.OK:
 		_show_error("Purchase update failed", result.response_code, result.debug_message)
 		return

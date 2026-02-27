@@ -125,10 +125,10 @@ else:
 	print("response_code: ", result.response_code, "debug_message: ", result.debug_message)
 ```
 
-The result of the purchase will be sent through the `on_purchases_updated` signal.
+The result of the purchase will be sent through the `on_purchase_updated` signal.
 
 ```gdscript
-func _on_purchases_updated(result: Dictionary):
+func _on_purchase_updated(result: Dictionary):
 	if result.response_code == BillingClient.BillingResponseCode.OK:
 		print("Purchase update received")
 		for purchase in result.purchases:
@@ -140,7 +140,7 @@ func _on_purchases_updated(result: Dictionary):
 
 ### Processing a purchase item
 
-The `query_purchases_response` and `on_purchases_updated` signals provide an array of purchases in Dictionary format.
+The `query_purchases_response` and `on_purchase_updated` signals provide an array of purchases in Dictionary format.
 The purchase Dictionary includes keys that map to values of the Google Play Billing [Purchase](https://developer.android.com/reference/com/android/billingclient/api/Purchase) class.
 
 Purchase fields:
@@ -259,7 +259,7 @@ You need to acknowledge new subscription purchases, but not automatic subscripti
 If you support upgrading or downgrading between different subscription levels, you need to use `update_subscription()` to call the subscription update flow
 to change an active subscription.
 
-Like `purchase()`, results are returned by the `on_purchases_updated` signal.
+Like `purchase()`, results are returned by the `on_purchase_updated` signal.
 
 These are the parameters of `update_subscription()`:
 
