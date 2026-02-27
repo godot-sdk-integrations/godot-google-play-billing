@@ -32,6 +32,7 @@ The plugin is now active in your project.
 1. In main menu, go to `Project > Export`.
 2. Add an Android export preset if you dont have one.
 3. Ensure:
+    - `gradle/use_gradle_build` is checked.
     - Package name matches your Google Play Console app
     - Internet permission is enabled
     - The project is signed with a release keystore

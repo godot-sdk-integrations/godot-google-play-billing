@@ -5,7 +5,8 @@ site_author = "syntaxerror247"
 
 nav = [
   "index.md",
-  "Installation.md"
+  "Installation.md",
+  "quickstart.md"
 ]
 
 copyright = """
