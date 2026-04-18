@@ -24,6 +24,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -54,3 +55,4 @@ jobs:
       - name: Deploy Pages
         uses: actions/deploy-pages@v5
         id: deployment
+        
