@@ -14,10 +14,12 @@ nav = [
   { "Installation" = "installation.md" },
   { "Quick Start" = "quickstart.md" },
   { "Console Setup" = "google_play_console_setup.md" },
-  { "Billing Client" = "billing_client.md" },
-  { "Methods" = "methods.md" },
-  { "Signals" = "signals.md" },
-  { "Enums" = "enums.md" }
+  { "API Reference" = [
+    { "Billing Client" = "api/billing_client.md" },
+    { "Methods" = "api/methods.md" },
+    { "Signals" = "api/signals.md" },
+    { "Enums" = "api/enums.md" }
+  ]}
 ]
 
 [project.theme]
