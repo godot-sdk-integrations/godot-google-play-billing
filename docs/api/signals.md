@@ -1,6 +1,5 @@
 ---
 title: Signals
-icon: fontawesome/solid/signal
 ---
 
 # Signals

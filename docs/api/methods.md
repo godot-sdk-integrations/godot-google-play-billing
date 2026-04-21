@@ -1,6 +1,5 @@
 ---
 title: Methods
-icon: fontawesome/solid/bolt
 ---
 
 # Methods

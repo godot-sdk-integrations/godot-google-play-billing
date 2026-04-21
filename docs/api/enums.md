@@ -1,6 +1,5 @@
 ---
 title: Enums
-icon: fontawesome/solid/list-ul
 ---
 
 # Enums

@@ -1,6 +1,5 @@
 ---
 title: Billing Client
-icon: fontawesome/solid/credit-card
 ---
 # BillingClient
 
