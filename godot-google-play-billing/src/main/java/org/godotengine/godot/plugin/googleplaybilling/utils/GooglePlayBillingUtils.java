@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  GooglePlayBillingUtils.java                                                    */
+/*  GooglePlayBillingUtils.java                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -32,10 +32,10 @@ package org.godotengine.godot.plugin.googleplaybilling.utils;
 
 import org.godotengine.godot.Dictionary;
 
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.SkuDetails;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GooglePlayBillingUtils {
@@ -49,10 +49,10 @@ public class GooglePlayBillingUtils {
 		dictionary.put("purchase_token", purchase.getPurchaseToken());
 		dictionary.put("quantity", purchase.getQuantity());
 		dictionary.put("signature", purchase.getSignature());
-		// PBL V4 replaced getSku with getSkus to support multi-sku purchases,
-		// use the first entry for "sku" and generate an array for "skus"
-		ArrayList<String> skus = purchase.getSkus();
-		dictionary.put("sku", skus.get(0));
+		// PBL V4 replaced getSku with getSkus to support multi-sku purchases.
+		// PBL V7 replaced getSkus with getProducts.
+		List<String> skus = purchase.getProducts();
+		dictionary.put("sku", skus.isEmpty() ? "" : skus.get(0));
 		String[] skusArray = skus.toArray(new String[0]);
 		dictionary.put("skus", skusArray);
 		dictionary.put("is_acknowledged", purchase.isAcknowledged());
@@ -60,24 +60,60 @@ public class GooglePlayBillingUtils {
 		return dictionary;
 	}
 
-	public static Dictionary convertSkuDetailsToDictionary(SkuDetails details) {
+	public static Dictionary convertSkuDetailsToDictionary(ProductDetails details) {
 		Dictionary dictionary = new Dictionary();
-		dictionary.put("sku", details.getSku());
+		dictionary.put("sku", details.getProductId());
 		dictionary.put("title", details.getTitle());
 		dictionary.put("description", details.getDescription());
-		dictionary.put("price", details.getPrice());
-		dictionary.put("price_currency_code", details.getPriceCurrencyCode());
-		dictionary.put("price_amount_micros", details.getPriceAmountMicros());
-		dictionary.put("free_trial_period", details.getFreeTrialPeriod());
-		dictionary.put("icon_url", details.getIconUrl());
-		dictionary.put("introductory_price", details.getIntroductoryPrice());
-		dictionary.put("introductory_price_amount_micros", details.getIntroductoryPriceAmountMicros());
-		dictionary.put("introductory_price_cycles", details.getIntroductoryPriceCycles());
-		dictionary.put("introductory_price_period", details.getIntroductoryPricePeriod());
-		dictionary.put("original_price", details.getOriginalPrice());
-		dictionary.put("original_price_amount_micros", details.getOriginalPriceAmountMicros());
-		dictionary.put("subscription_period", details.getSubscriptionPeriod());
-		dictionary.put("type", details.getType());
+		// ProductDetails no longer exposes every flattened SkuDetails field.
+		// Keep the legacy dictionary keys and use old-type defaults when there is no direct equivalent.
+		dictionary.put("price", "");
+		dictionary.put("price_currency_code", "");
+		dictionary.put("price_amount_micros", 0L);
+		dictionary.put("free_trial_period", "");
+		dictionary.put("icon_url", "");
+		dictionary.put("introductory_price", "");
+		dictionary.put("introductory_price_amount_micros", 0L);
+		dictionary.put("introductory_price_cycles", 0);
+		dictionary.put("introductory_price_period", "");
+		dictionary.put("original_price", "");
+		dictionary.put("original_price_amount_micros", 0L);
+		dictionary.put("subscription_period", "");
+		dictionary.put("type", details.getProductType());
+
+		if (BillingClient.ProductType.INAPP.equals(details.getProductType())) {
+			ProductDetails.OneTimePurchaseOfferDetails offer = details.getOneTimePurchaseOfferDetails();
+			if (offer != null) {
+				dictionary.put("price", offer.getFormattedPrice());
+				dictionary.put("price_currency_code", offer.getPriceCurrencyCode());
+				dictionary.put("price_amount_micros", offer.getPriceAmountMicros());
+				Long fullPriceMicros = offer.getFullPriceMicros();
+				if (fullPriceMicros != null) {
+					dictionary.put("original_price_amount_micros", fullPriceMicros);
+				}
+			}
+		} else if (BillingClient.ProductType.SUBS.equals(details.getProductType())) {
+			List<ProductDetails.SubscriptionOfferDetails> offers = details.getSubscriptionOfferDetails();
+			if (offers != null && !offers.isEmpty()) {
+				ProductDetails.SubscriptionOfferDetails selectedOffer = offers.get(0);
+				// Billing 8 uses a null offer id for the regular base plan. Prefer it for legacy sku details.
+				for (ProductDetails.SubscriptionOfferDetails offer : offers) {
+					if (offer.getOfferId() == null) {
+						selectedOffer = offer;
+						break;
+					}
+				}
+				List<ProductDetails.PricingPhase> phases = selectedOffer.getPricingPhases().getPricingPhaseList();
+				if (phases != null && !phases.isEmpty()) {
+					ProductDetails.PricingPhase pricingPhase = phases.get(0);
+					dictionary.put("price", pricingPhase.getFormattedPrice());
+					dictionary.put("price_currency_code", pricingPhase.getPriceCurrencyCode());
+					dictionary.put("price_amount_micros", pricingPhase.getPriceAmountMicros());
+					dictionary.put("subscription_period", pricingPhase.getBillingPeriod());
+				}
+			}
+		}
+
 		return dictionary;
 	}
 
@@ -91,7 +127,7 @@ public class GooglePlayBillingUtils {
 		return purchaseDictionaries;
 	}
 
-	public static Object[] convertSkuDetailsListToDictionaryObjectArray(List<SkuDetails> skuDetails) {
+	public static Object[] convertSkuDetailsListToDictionaryObjectArray(List<ProductDetails> skuDetails) {
 		Object[] skuDetailsDictionaries = new Object[skuDetails.size()];
 
 		for (int i = 0; i < skuDetails.size(); i++) {
