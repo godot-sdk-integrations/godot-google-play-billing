@@ -50,13 +50,16 @@ import com.android.billingclient.api.BillingResult;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 import com.android.billingclient.api.PendingPurchasesParams;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.ProductDetailsResponseListener;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
-import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetailsParams;
-import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsResult;
+import com.android.billingclient.api.QueryPurchasesParams;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +68,8 @@ import java.util.Set;
 public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpdatedListener, BillingClientStateListener {
 
 	private final BillingClient billingClient;
-	private final HashMap<String, SkuDetails> skuDetailsCache = new HashMap<>(); // sku → SkuDetails
+	// Billing 8 removed SkuDetails. Keep the legacy cache/API names, but store ProductDetails keyed by sku.
+	private final HashMap<String, ProductDetails> skuDetailsCache = new HashMap<>(); // sku -> ProductDetails
 	private boolean calledStartConnection;
 	private String obfuscatedAccountId;
 	private String obfuscatedProfileId;
@@ -73,12 +77,13 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	public GodotGooglePlayBilling(Godot godot) {
 		super(godot);
 
-		PendingPurchasesParams pendingPurchasesParams = 
+		PendingPurchasesParams pendingPurchasesParams =
 			PendingPurchasesParams.newBuilder().enableOneTimeProducts().build();
 
 		billingClient = BillingClient
 								.newBuilder(getActivity())
 								.enablePendingPurchases(pendingPurchasesParams)
+								.enableAutoServiceReconnection()
 								.setListener(this)
 								.build();
 		calledStartConnection = false;
@@ -105,7 +110,11 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 
 	@UsedByGodot
 	public void queryPurchases(String type) {
-		billingClient.queryPurchasesAsync(type, new PurchasesResponseListener() {
+		QueryPurchasesParams params = QueryPurchasesParams.newBuilder()
+				.setProductType(type)
+				.build();
+
+		billingClient.queryPurchasesAsync(params, new PurchasesResponseListener() {
 			@Override
 			public void onQueryPurchasesResponse(BillingResult billingResult,
 					List<Purchase> purchaseList) {
@@ -124,19 +133,27 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 	}
 	@UsedByGodot
 	public void querySkuDetails(final String[] list, String type) {
-		List<String> skuList = Arrays.asList(list);
+		// Billing 8 queries ProductDetails. The Godot 3 API still exposes these ids as skus.
+		List<QueryProductDetailsParams.Product> skuList = new ArrayList<>();
+		for (String sku : list) {
+			skuList.add(QueryProductDetailsParams.Product.newBuilder()
+					.setProductId(sku)
+					.setProductType(type)
+					.build());
+		}
 
-		SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder()
-												  .setSkusList(skuList)
-												  .setType(type);
+		QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
+				.setProductList(skuList)
+				.build();
 
-		billingClient.querySkuDetailsAsync(params.build(), new SkuDetailsResponseListener() {
+		billingClient.queryProductDetailsAsync(params, new ProductDetailsResponseListener() {
 			@Override
-			public void onSkuDetailsResponse(BillingResult billingResult,
-					List<SkuDetails> skuDetailsList) {
+			public void onProductDetailsResponse(BillingResult billingResult,
+					QueryProductDetailsResult queryProductDetailsResult) {
 				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-					for (SkuDetails skuDetails : skuDetailsList) {
-						skuDetailsCache.put(skuDetails.getSku(), skuDetails);
+					List<ProductDetails> skuDetailsList = queryProductDetailsResult.getProductDetailsList();
+					for (ProductDetails skuDetails : skuDetailsList) {
+						skuDetailsCache.put(skuDetails.getProductId(), skuDetails);
 					}
 					emitSignal("sku_details_query_completed", (Object)GooglePlayBillingUtils.convertSkuDetailsListToDictionaryObjectArray(skuDetailsList));
 				} else {
@@ -204,8 +221,6 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 			return returnValue;
 		}
 
-		SkuDetails skuDetails = skuDetailsCache.get(sku);
-		
 		Dictionary returnValue = new Dictionary();
 		returnValue.put("status", 0); // OK = 0
 		return returnValue;
@@ -229,9 +244,41 @@ public class GodotGooglePlayBilling extends GodotPlugin implements PurchasesUpda
 			return returnValue;
 		}
 
-		SkuDetails skuDetails = skuDetailsCache.get(sku);
+		ProductDetails skuDetails = skuDetailsCache.get(sku);
+		// Billing 8 launches purchases with ProductDetailsParams instead of setSkuDetails.
+		// Pick the default offer token so the legacy purchase(sku) method still works.
+		BillingFlowParams.ProductDetailsParams.Builder skuDetailsParamsBuilder =
+				BillingFlowParams.ProductDetailsParams.newBuilder()
+						.setProductDetails(skuDetails);
+
+		if (BillingClient.ProductType.SUBS.equals(skuDetails.getProductType())) {
+			List<ProductDetails.SubscriptionOfferDetails> offers = skuDetails.getSubscriptionOfferDetails();
+			if (offers != null && !offers.isEmpty()) {
+				ProductDetails.SubscriptionOfferDetails selectedOffer = offers.get(0);
+				// Billing 8 uses a null offer id for the regular base plan. Prefer it for the legacy purchase(sku) path.
+				for (ProductDetails.SubscriptionOfferDetails offer : offers) {
+					if (offer.getOfferId() == null) {
+						selectedOffer = offer;
+						break;
+					}
+				}
+				String offerToken = selectedOffer.getOfferToken();
+				if (offerToken != null && !offerToken.isEmpty()) {
+					skuDetailsParamsBuilder.setOfferToken(offerToken);
+				}
+			}
+		} else {
+			ProductDetails.OneTimePurchaseOfferDetails offer = skuDetails.getOneTimePurchaseOfferDetails();
+			if (offer != null) {
+				String offerToken = offer.getOfferToken();
+				if (offerToken != null && !offerToken.isEmpty()) {
+					skuDetailsParamsBuilder.setOfferToken(offerToken);
+				}
+			}
+		}
+
 		BillingFlowParams.Builder purchaseParamsBuilder = BillingFlowParams.newBuilder();
-		purchaseParamsBuilder.setSkuDetails(skuDetails);
+		purchaseParamsBuilder.setProductDetailsParamsList(Arrays.asList(skuDetailsParamsBuilder.build()));
 		if (!obfuscatedAccountId.isEmpty()) {
 			purchaseParamsBuilder.setObfuscatedAccountId(obfuscatedAccountId);
 		}
