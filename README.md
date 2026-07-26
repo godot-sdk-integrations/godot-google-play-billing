@@ -31,5 +31,5 @@ Full documentation is available at: https://godot-sdk-integrations.github.io/god
 
 ## Demo
 
-You use this minimal [IAP store demo](https://github.com/godot-sdk-integrations/godot-google-play-billing/tree/master/demo) for reference.
+You use this minimal [IAP store demo](https://store.godotengine.org/asset/godot-foundation/android-iap-demo/) for reference.
 <img src="https://github.com/user-attachments/assets/d927a4a4-45e0-45b8-9f0e-51f0f202240e" width="60%" />
