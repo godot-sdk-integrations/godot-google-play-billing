@@ -63,6 +63,18 @@ public class GooglePlayBillingUtils {
 		dictionary.put("sku", details.getProductId());
 		dictionary.put("title", details.getTitle());
 		dictionary.put("description", details.getDescription());
+		dictionary.put("price", "");
+		dictionary.put("price_currency_code", "");
+		dictionary.put("price_amount_micros", 0L);
+		dictionary.put("free_trial_period", "");
+		dictionary.put("icon_url", "");
+		dictionary.put("introductory_price", "");
+		dictionary.put("introductory_price_amount_micros", 0L);
+		dictionary.put("introductory_price_cycles", 0);
+		dictionary.put("introductory_price_period", "");
+		dictionary.put("original_price", "");
+		dictionary.put("original_price_amount_micros", 0L);
+		dictionary.put("subscription_period", "");
 		dictionary.put("type", details.getProductType());
 
 		ProductDetails.OneTimePurchaseOfferDetails oneTimeOfferDetails = details.getOneTimePurchaseOfferDetails();
